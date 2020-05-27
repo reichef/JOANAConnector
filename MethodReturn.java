@@ -2,7 +2,7 @@ package edu.kit.joana.component.connector;
 
 public class MethodReturn extends Method {
 
-  public MethodReturn(Method method){
+  public MethodReturn(Method method) {
     this(method.className, method.methodName);
   }
 
@@ -14,7 +14,7 @@ public class MethodReturn extends Method {
     return new Method(className, methodName);
   }
 
-  <T> T accept(Visitor<T> visitor){
+  <T> T accept(Visitor<T> visitor) {
     return visitor.visit(this);
   }
 

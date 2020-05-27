@@ -36,15 +36,15 @@ public class Method {
   /**
    * Returns a regular expression that matches the method
    */
-  public String toRegexp(){
+  public String toRegexp() {
     return String.format(".*%s\\.%s(\\(.*\\)[^-]*(->[^-]+)?)?$", className, methodName);
   }
 
-  public Method discardMiscInformation(){
+  public Method discardMiscInformation() {
     return this;
   }
 
-  <T> T accept(Visitor<T> visitor){
+  <T> T accept(Visitor<T> visitor) {
     return visitor.visit(this);
   }
 

@@ -11,7 +11,7 @@ public class Flows implements Iterable<Map.Entry<Method, Set<Method>>> {
 
   private final Map<Method, Set<Method>> flows;
 
-  public Flows(){
+  public Flows() {
     this(new HashMap<>());
   }
 
@@ -19,28 +19,28 @@ public class Flows implements Iterable<Map.Entry<Method, Set<Method>>> {
     this.flows = flows;
   }
 
-  public Map<Method, Set<Method>> flows(){
+  public Map<Method, Set<Method>> flows() {
     return Collections.unmodifiableMap(flows);
   }
 
-  public Set<Method> flows(Method method){
+  public Set<Method> flows(Method method) {
     return flows.getOrDefault(method, Collections.emptySet());
   }
 
-  public boolean isEmpty(){
+  public boolean isEmpty() {
     return flows.isEmpty();
   }
 
   /**
    * @return this - other
    */
-  public Flows remove(Flows other){
+  public Flows remove(Flows other) {
     Map<Method, Set<Method>> newFlows = new HashMap<>();
     for (Map.Entry<Method, Set<Method>> methodSetEntry : flows.entrySet()) {
-      if (other.flows.containsKey(methodSetEntry.getKey())){
+      if (other.flows.containsKey(methodSetEntry.getKey())) {
         Set<Method> methods = new HashSet<>();
         for (Method method : methodSetEntry.getValue()) {
-          if (!other.flows.get(methodSetEntry.getKey()).contains(method)){
+          if (!other.flows.get(methodSetEntry.getKey()).contains(method)) {
             methods.add(method);
           }
         }
@@ -53,18 +53,19 @@ public class Flows implements Iterable<Map.Entry<Method, Set<Method>>> {
   }
 
   @Override public String toString() {
-    return flows.entrySet().stream().map(e -> String.format("%s -> %s", e.getKey(), e.getValue())).collect(Collectors.joining("\n"));
+    return flows.entrySet().stream().map(e -> String.format("%s -> %s", e.getKey(), e.getValue()))
+        .collect(Collectors.joining("\n"));
   }
 
-  public boolean hasAllParameters(){
+  public boolean hasAllParameters() {
     return true;
   }
 
-  public int getParameterNumber(){
+  public int getParameterNumber() {
     return -1;
   }
 
-  public Flows discardParameterInformation(){
+  public Flows discardParameterInformation() {
     Map<Method, Set<Method>> methods = new HashMap<>();
     for (Map.Entry<Method, Set<Method>> entry : flows.entrySet()) {
       methods.computeIfAbsent(entry.getKey().discardMiscInformation(), e -> new HashSet<>())
@@ -73,7 +74,7 @@ public class Flows implements Iterable<Map.Entry<Method, Set<Method>>> {
     return new Flows(methods);
   }
 
-  public Flows add(Method source, Method sink){
+  public Flows add(Method source, Method sink) {
     flows.computeIfAbsent(source, s -> new HashSet<>()).add(sink);
     return this;
   }
@@ -84,41 +85,41 @@ public class Flows implements Iterable<Map.Entry<Method, Set<Method>>> {
 
   /**
    * Collect all flows that start in the passed method
+   *
    * @param method
    * @param onlyInnerMethodSinks only return sinks that belong to the same method
    * @return new flows instance
    */
-  public Flows forMethod(Method method, boolean onlyInnerMethodSinks){
-    return filter(s -> s.discardMiscInformation().equals(method), s ->
-        !onlyInnerMethodSinks || s.discardMiscInformation().equals(method));
+  public Flows forMethod(Method method, boolean onlyInnerMethodSinks) {
+    return filter(s -> s.discardMiscInformation().equals(method),
+        s -> !onlyInnerMethodSinks || s.discardMiscInformation().equals(method));
   }
 
-  public Flows onlyParameterSources(){
+  public Flows onlyParameterSources() {
     return filterSources(s -> s instanceof MethodParameter);
   }
 
-  public boolean contains(Method sink, Method source){
+  public boolean contains(Method sink, Method source) {
     return flows(sink).contains(source);
   }
 
   public List<MethodParameter> getParamConnectedToReturn(Method method) {
     Flows parameterFlows = forMethod(method, true).onlyParameterSources();
-    return parameterFlows.flows.keySet().stream()
-        .filter(p -> parameterFlows.contains(p, new MethodReturn(method))).map(p -> (MethodParameter)p)
-        .collect(Collectors.toList());
+    return parameterFlows.flows.keySet().stream().filter(p -> parameterFlows.contains(p, new MethodReturn(method)))
+        .map(p -> (MethodParameter) p).collect(Collectors.toList());
   }
 
-  public Flows filter(Predicate<Method> sourceFilter, Predicate<Method> sinkFilter){
+  public Flows filter(Predicate<Method> sourceFilter, Predicate<Method> sinkFilter) {
     return new Flows(flows.entrySet().stream().filter(e -> sourceFilter.test(e.getKey()))
         .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().stream().filter(sinkFilter).collect(Collectors.toSet()))));
   }
 
-  public Flows filterSources(Predicate<Method> sourceFilter){
+  public Flows filterSources(Predicate<Method> sourceFilter) {
     return new Flows(flows.entrySet().stream().filter(e -> sourceFilter.test(e.getKey()))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
   }
 
-  public Flows filterSinks(Predicate<Method> sinkFilter){
+  public Flows filterSinks(Predicate<Method> sinkFilter) {
     return new Flows(flows.entrySet().stream()
         .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().stream().filter(sinkFilter).collect(Collectors.toSet()))));
   }

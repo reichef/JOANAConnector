@@ -14,7 +14,11 @@ public class JoanaCallReturn {
     Util.store(path, this);
   }
 
-  public static JoanaCallReturn load(Path path){
+  public static JoanaCallReturn load(Path path) {
     return Util.load(path);
+  }
+
+  @Override public String toString() {
+    return flows.toString();
   }
 }

@@ -16,7 +16,7 @@ public class MethodParameter extends Method {
     this.parameter = parameter;
   }
 
-  public MethodParameter(Method method, int parameter){
+  public MethodParameter(Method method, int parameter) {
     this(method.className, method.methodName, parameter);
   }
 
@@ -42,11 +42,11 @@ public class MethodParameter extends Method {
   /**
    * Creates a method object that ignores the parameter information
    */
-  public Method discardMiscInformation(){
+  public Method discardMiscInformation() {
     return new Method(className, methodName);
   }
 
-  <T> T accept(Visitor<T> visitor){
+  <T> T accept(Visitor<T> visitor) {
     return visitor.visit(this);
   }
 
