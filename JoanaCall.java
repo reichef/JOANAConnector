@@ -80,8 +80,8 @@ public class JoanaCall {
       if (Files.exists(path)) {
         Files.delete(path);
       }
-      try (FileSystem fs = FileSystems.newFileSystem(URI.create("jar:file:" + path.toAbsolutePath().toString()), env, null)) {
-        for (String classPathPart : classPath.split(":")) {
+      try (FileSystem fs = FileSystems.newFileSystem(URI.create("jar:" + path.toUri().toString()), env, null)) {
+        for (String classPathPart : classPath.split(System.getProperty("path.separator"))) {
           Path classPathPartPath = Paths.get(classPathPart).toAbsolutePath();
           if (Files.isDirectory(classPathPartPath)) {
             Files.walk(classPathPartPath).forEach(filePath -> {
