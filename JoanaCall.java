@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 /**
  * Call for analyze
@@ -54,16 +55,21 @@ public class JoanaCall {
   }
 
   public void roundTrip(Consumer<JoanaCall> processor) {
+    Path tmpFile = null;
+    Path tmpFolder = null;
     try {
-      Path tmpFile = Files.createTempFile("", ".zip");
-      Path tmpFolder = Files.createTempDirectory("");
+      tmpFile = Files.createTempFile("", ".zip");
+      tmpFolder = Files.createTempDirectory("");
       storeWithClassPath(tmpFile);
       processor.accept(loadZipFile(tmpFile, tmpFolder));
-      deleteFolder(tmpFolder);
-      Files.delete(tmpFile);
     } catch (IOException e) {
       e.printStackTrace();
       throw new RuntimeException(e);
+    } finally {
+      try {
+        deleteFolder(tmpFolder);
+        Files.delete(tmpFile);
+      } catch (Exception e) {}
     }
   }
 
@@ -93,7 +99,7 @@ public class JoanaCall {
                 if (Files.isDirectory(filePath)) {
                   Files.createDirectories(newPath);
                 } else {
-                  Files.copy(filePath, newPath);
+                  copyFileAndMergeIfNecessary(filePath, newPath, fs);
                 }
               } catch (IOException e) {
                 e.printStackTrace();
@@ -101,7 +107,7 @@ public class JoanaCall {
               }
             });
           } else {
-            Files.copy(classPathPartPath, fs.getPath(classPathPartPath.getFileName().toString()));
+            copyFileAndMergeIfNecessary(classPathPartPath, fs.getPath(classPathPartPath.getFileName().toString()), fs);
           }
         }
         Path tmpPath = Files.createTempFile("", "");
@@ -112,6 +118,18 @@ public class JoanaCall {
     } catch (IOException e) {
       e.printStackTrace();
       throw new RuntimeException(e);
+    }
+  }
+
+  private static void copyFileAndMergeIfNecessary(Path file, Path newFile, FileSystem fs) {
+    if (isZip(file)) {
+      mergeFromZip(file, fs);
+    } else {
+      try {
+        Files.copy(file, newFile);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     }
   }
 
@@ -137,6 +155,34 @@ public class JoanaCall {
         throw new RuntimeException();
       }
       return loaded.setClassPath(resultPath.toAbsolutePath().toString());
+    } catch (IOException e) {
+      e.printStackTrace();
+      throw new RuntimeException(e);
+    }
+  }
+
+  private static boolean isZip(Path path){
+    try {
+      return new ZipInputStream(Files.newInputStream(path)).getNextEntry() != null;
+    } catch (IOException e) {
+    }
+    return false;
+  }
+
+  private static void mergeFromZip(Path zip, FileSystem fs){
+    try {
+      ZipFile zipFile = new ZipFile(zip.toFile());
+      Enumeration<? extends ZipEntry> entries = zipFile.entries();
+      while (entries.hasMoreElements()) {
+        ZipEntry zipEntry = entries.nextElement();
+        Path newFile = fs.getPath("/" + zipEntry.getName());
+        if (!Files.exists(newFile.getParent())) {
+          Files.createDirectories(newFile.getParent());
+        }
+        if (!zipEntry.isDirectory()) {
+          Files.copy(zipFile.getInputStream(zipEntry), newFile);
+        }
+      }
     } catch (IOException e) {
       e.printStackTrace();
       throw new RuntimeException(e);
