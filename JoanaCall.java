@@ -23,11 +23,11 @@ public class JoanaCall {
     this.sinks = sinks;
   }
 
-  void store(Path path) {
+  public void store(Path path) {
     Util.store(path, this);
   }
 
-  static JoanaCall load(Path path){
+  public static JoanaCall load(Path path){
     return Util.load(path);
   }
 }

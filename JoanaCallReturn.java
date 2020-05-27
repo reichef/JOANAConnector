@@ -10,11 +10,11 @@ public class JoanaCallReturn {
     this.flows = flows;
   }
 
-  void store(Path path) {
+  public void store(Path path) {
     Util.store(path, this);
   }
 
-  static JoanaCallReturn load(Path path){
+  public static JoanaCallReturn load(Path path){
     return Util.load(path);
   }
 }
