@@ -125,8 +125,12 @@ public class JoanaCall {
       while (entries.hasMoreElements()) {
         ZipEntry zipEntry = entries.nextElement();
         Path newFile = resultPath.resolve(Paths.get(zipEntry.getName()));
-        Files.createDirectories(newFile.getParent());
-        Files.copy(zipFile.getInputStream(zipEntry), newFile);
+        if (!Files.exists(newFile.getParent())) {
+          Files.createDirectories(newFile.getParent());
+        }
+        if (!zipEntry.isDirectory()) {
+          Files.copy(zipFile.getInputStream(zipEntry), newFile);
+        }
       }
       JoanaCall loaded = load(resultPath.resolve("call.json"));
       if (!loaded.classPath.equals(".")) {
