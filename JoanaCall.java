@@ -49,7 +49,6 @@ public class JoanaCall {
     try {
       Files.walk(folder).map(Path::toFile).sorted((o1, o2) -> -o1.compareTo(o2)).forEach(File::delete);
     } catch (IOException e) {
-      e.printStackTrace();
       throw new RuntimeException(e);
     }
   }
@@ -63,13 +62,13 @@ public class JoanaCall {
       storeWithClassPath(tmpFile);
       processor.accept(loadZipFile(tmpFile, tmpFolder));
     } catch (IOException e) {
-      e.printStackTrace();
       throw new RuntimeException(e);
     } finally {
       try {
         deleteFolder(tmpFolder);
         Files.delete(tmpFile);
-      } catch (Exception e) {}
+      } catch (Exception ignored) {
+      }
     }
   }
 
@@ -102,7 +101,6 @@ public class JoanaCall {
                   copyFileAndMergeIfNecessary(filePath, newPath, fs);
                 }
               } catch (IOException e) {
-                e.printStackTrace();
                 throw new RuntimeException(e);
               }
             });
@@ -116,7 +114,6 @@ public class JoanaCall {
         Files.delete(tmpPath);
       }
     } catch (IOException e) {
-      e.printStackTrace();
       throw new RuntimeException(e);
     }
   }
@@ -156,20 +153,19 @@ public class JoanaCall {
       }
       return loaded.setClassPath(resultPath.toAbsolutePath().toString());
     } catch (IOException e) {
-      e.printStackTrace();
       throw new RuntimeException(e);
     }
   }
 
-  private static boolean isZip(Path path){
+  private static boolean isZip(Path path) {
     try {
       return new ZipInputStream(Files.newInputStream(path)).getNextEntry() != null;
-    } catch (IOException e) {
+    } catch (IOException ignored) {
     }
     return false;
   }
 
-  private static void mergeFromZip(Path zip, FileSystem fs){
+  private static void mergeFromZip(Path zip, FileSystem fs) {
     try {
       ZipFile zipFile = new ZipFile(zip.toFile());
       Enumeration<? extends ZipEntry> entries = zipFile.entries();
@@ -179,12 +175,11 @@ public class JoanaCall {
         if (!Files.exists(newFile.getParent())) {
           Files.createDirectories(newFile.getParent());
         }
-        if (!zipEntry.isDirectory()) {
+        if (!zipEntry.isDirectory() && !Files.exists(newFile)) {
           Files.copy(zipFile.getInputStream(zipEntry), newFile);
         }
       }
     } catch (IOException e) {
-      e.printStackTrace();
       throw new RuntimeException(e);
     }
   }
@@ -198,7 +193,7 @@ public class JoanaCall {
       processor.accept(loadZipFile(path, tmpFolder));
       Files.delete(tmpFolder);
     } catch (IOException e) {
-      e.printStackTrace();
+      throw new RuntimeException(e);
     }
   }
 }
