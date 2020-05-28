@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
@@ -26,15 +27,18 @@ public class JoanaCall {
 
   public final List<Method> sinks;
 
-  public JoanaCall(String classPath, Flows knownFlows, List<Method> sources, List<Method> sinks) {
+  public final Level logLevel;
+
+  public JoanaCall(String classPath, Flows knownFlows, List<Method> sources, List<Method> sinks, Level logLevel) {
     this.classPath = classPath;
     this.knownFlows = knownFlows;
     this.sources = sources;
     this.sinks = sinks;
+    this.logLevel = logLevel;
   }
 
   public JoanaCall setClassPath(String newClassPath) {
-    return new JoanaCall(newClassPath, knownFlows, sources, sinks);
+    return new JoanaCall(newClassPath, knownFlows, sources, sinks, logLevel);
   }
 
   public void store(Path path) {
