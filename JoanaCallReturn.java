@@ -4,21 +4,23 @@ import java.nio.file.Path;
 
 public class JoanaCallReturn {
 
-  public final Flows flows;
+	public static final String FILE_ENDING = ".json";
+	public final Flows flows;
 
-  public JoanaCallReturn(Flows flows) {
-    this.flows = flows;
-  }
+	public JoanaCallReturn(Flows flows) {
+		this.flows = flows;
+	}
 
-  public void store(Path path) {
-    Util.store(path, this);
-  }
+	public void store(Path path) {
+		Util.store(path, this);
+	}
 
-  public static JoanaCallReturn load(Path path) {
-    return Util.load(path);
-  }
+	public static JoanaCallReturn load(Path path) {
+		return Util.load(path);
+	}
 
-  @Override public String toString() {
-    return flows.toString();
-  }
+	@Override
+	public String toString() {
+		return flows.toString();
+	}
 }
