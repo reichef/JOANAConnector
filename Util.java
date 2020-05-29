@@ -10,7 +10,7 @@ import java.util.Collections;
 
 public class Util {
 
-  static <T> T load(Path path) {
+  public static <T> T load(Path path) {
     try {
       return (T) JsonReader.jsonToJava(String.join("\n", Files.readAllLines(path)));
     } catch (IOException e) {
@@ -19,7 +19,7 @@ public class Util {
     }
   }
 
-  static <T> void store(Path path, T obj) {
+  public static <T> void store(Path path, T obj) {
     try {
       Files.write(path, Collections.singleton(JsonWriter.objectToJson(obj)));
     } catch (IOException e) {
