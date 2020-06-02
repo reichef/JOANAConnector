@@ -191,11 +191,11 @@ public class JoanaCall {
   /**
    * Loads a zip file into a temporary folder and processes it with the passed method
    */
-  public static void loadZipFile(Path path, Consumer<JoanaCall> processor) {
+  public void loadZipFile(Path path, Consumer<JoanaCall> processor) {
     try {
       Path tmpFolder = Files.createTempDirectory("");
       processor.accept(loadZipFile(path, tmpFolder));
-      Files.delete(tmpFolder);
+      deleteFolder(tmpFolder);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
