@@ -1,15 +1,15 @@
 package edu.kit.joana.component.connector;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URL;
+import java.nio.file.FileSystem;
 import java.nio.file.*;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
@@ -19,6 +19,8 @@ import java.util.zip.ZipInputStream;
  */
 public class JoanaCall {
 
+  public static int SERVER_PORT = 8004;
+
   public final String classPath;
 
   public final Flows knownFlows;
@@ -27,18 +29,31 @@ public class JoanaCall {
 
   public final List<Method> sinks;
 
+  public final Optional<List<String>> allowedPackagesForUninitializedFields;
+
   public final Level logLevel;
 
-  public JoanaCall(String classPath, Flows knownFlows, List<Method> sources, List<Method> sinks, Level logLevel) {
+  public JoanaCall(String classPath, Flows knownFlows, List<Method> sources, List<Method> sinks,
+      Optional<List<String>> allowedPackagesForUnitializedFields, Level logLevel) {
     this.classPath = classPath;
     this.knownFlows = knownFlows;
     this.sources = sources;
     this.sinks = sinks;
+    this.allowedPackagesForUninitializedFields = allowedPackagesForUnitializedFields;
     this.logLevel = logLevel;
   }
 
+  public JoanaCall(String classPath, Flows knownFlows, List<Method> sources, List<Method> sinks,
+      List<String> allowedPackagesForUninitializedFields, Level logLevel) {
+    this(classPath, knownFlows, sources, sinks, Optional.of(allowedPackagesForUninitializedFields), logLevel);
+  }
+
+  public JoanaCall(String classPath, Flows knownFlows, List<Method> sources, List<Method> sinks, Level logLevel) {
+    this(classPath, knownFlows, sources, sinks, Optional.empty(), logLevel);
+  }
+
   public JoanaCall setClassPath(String newClassPath) {
-    return new JoanaCall(newClassPath, knownFlows, sources, sinks, logLevel);
+    return new JoanaCall(newClassPath, knownFlows, sources, sinks, allowedPackagesForUninitializedFields, logLevel);
   }
 
   public void store(Path path) {
@@ -49,9 +64,10 @@ public class JoanaCall {
     return Util.load(path);
   }
 
-  private void deleteFolder(Path folder) {
+  private static void deleteFolder(Path folder) {
     try {
       Files.walk(folder).map(Path::toFile).sorted((o1, o2) -> -o1.compareTo(o2)).forEach(File::delete);
+      Files.deleteIfExists(folder);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -68,10 +84,8 @@ public class JoanaCall {
     } catch (IOException e) {
       throw new RuntimeException(e);
     } finally {
-      try {
+      if (tmpFolder != null) {
         deleteFolder(tmpFolder);
-        Files.delete(tmpFile);
-      } catch (Exception ignored) {
       }
     }
   }
@@ -191,7 +205,7 @@ public class JoanaCall {
   /**
    * Loads a zip file into a temporary folder and processes it with the passed method
    */
-  public void loadZipFile(Path path, Consumer<JoanaCall> processor) {
+  public static void loadZipFile(Path path, Consumer<JoanaCall> processor) {
     try {
       Path tmpFolder = Files.createTempDirectory("");
       processor.accept(loadZipFile(path, tmpFolder));
@@ -199,5 +213,38 @@ public class JoanaCall {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public JoanaCallReturn processOnServer(String server) {
+    return processOnServer(server, SERVER_PORT);
+  }
+
+  public JoanaCallReturn processOnServer(String server, int port) {
+    Path tmpFile = null;
+    try {
+      tmpFile = Files.createTempFile("", ".zip");
+      storeWithClassPath(tmpFile);
+      URL url = new URL("http://" + server + ":" + port);
+      HttpURLConnection con = (HttpURLConnection) url.openConnection();
+      con.setRequestMethod("POST");
+      con.setDoOutput(true);
+      con.setChunkedStreamingMode(10000);
+      OutputStream outputStream = con.getOutputStream();
+      Files.copy(tmpFile, outputStream);
+      outputStream.close();
+      String str = new BufferedReader(new InputStreamReader(con.getInputStream())).lines().collect(Collectors.joining("\n"));
+      return JoanaCallReturn.fromJson(str);
+    } catch (IOException e) {
+      e.printStackTrace();
+    } finally {
+      if (tmpFile != null) {
+        try {
+          Files.delete(tmpFile);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+    return null;
   }
 }

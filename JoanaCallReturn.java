@@ -15,6 +15,10 @@ public class JoanaCallReturn {
 		Util.store(path, this);
 	}
 
+	public static JoanaCallReturn fromJson(String json) {
+		return Util.fromJson(json);
+	}
+
 	public static JoanaCallReturn load(Path path) {
 		return Util.load(path);
 	}
