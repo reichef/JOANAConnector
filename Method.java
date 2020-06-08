@@ -8,13 +8,21 @@ import java.util.Objects;
  */
 public class Method {
 
+  public final String concreteName;
   public final String className;
   public final String methodName;
 
   public Method(String className, String methodName) {
     this.className = className;
     this.methodName = methodName;
+    this.concreteName = "";
   }
+  
+  public Method(String concreteName, String className, String methodName) {
+	  	this.concreteName = concreteName;
+	    this.className = className;
+	    this.methodName = methodName;
+	  }
 
   @Override public boolean equals(Object o) {
     if (this == o)
@@ -37,7 +45,11 @@ public class Method {
    * Returns a regular expression that matches the method
    */
   public String toRegexp() {
-    return String.format(".*%s\\.%s(\\(.*\\)[^-]*(->[^-]+)?)?$", className, methodName);
+	  if(!concreteName.isEmpty()) {
+		  return String.format(".*%s\\.%s(\\(.*\\)[^-]*(->[^-]+)?)?$", concreteName, methodName);
+	  } else {
+		  return String.format(".*%s\\.%s(\\(.*\\)[^-]*(->[^-]+)?)?$", className, methodName);
+	  }
   }
 
   public Method discardMiscInformation() {
