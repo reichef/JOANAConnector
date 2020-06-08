@@ -45,11 +45,7 @@ public class Method {
    * Returns a regular expression that matches the method
    */
   public String toRegexp() {
-	  if(!concreteName.isEmpty()) {
-		  return String.format(".*%s\\.%s(\\(.*\\)[^-]*(->[^-]+)?)?$", concreteName, methodName);
-	  } else {
-		  return String.format(".*%s\\.%s(\\(.*\\)[^-]*(->[^-]+)?)?$", className, methodName);
-	  }
+	  return String.format(".*%s\\.%s(\\(.*\\)[^-]*(->[^-]+)?)?$", concreteName.isEmpty() ? className : concreteName, methodName);
   }
 
   public Method discardMiscInformation() {

@@ -33,6 +33,9 @@ public class JoanaCall {
 
   public final Level logLevel;
 
+  /**
+   * The passed lists have to have a working add method or else the serialization wont work
+   */
   public JoanaCall(String classPath, Flows knownFlows, List<Method> sources, List<Method> sinks,
       Optional<List<String>> allowedPackagesForUnitializedFields, Level logLevel) {
     this.classPath = classPath;
@@ -43,11 +46,17 @@ public class JoanaCall {
     this.logLevel = logLevel;
   }
 
+  /**
+   * The passed lists have to have a working add method or else the serialization wont work
+   */
   public JoanaCall(String classPath, Flows knownFlows, List<Method> sources, List<Method> sinks,
       List<String> allowedPackagesForUninitializedFields, Level logLevel) {
     this(classPath, knownFlows, sources, sinks, Optional.of(allowedPackagesForUninitializedFields), logLevel);
   }
 
+  /**
+   * The passed lists have to have a working add method or else the serialization wont work
+   */
   public JoanaCall(String classPath, Flows knownFlows, List<Method> sources, List<Method> sinks, Level logLevel) {
     this(classPath, knownFlows, sources, sinks, Optional.empty(), logLevel);
   }
@@ -208,9 +217,11 @@ public class JoanaCall {
   public static void loadZipFile(Path path, Consumer<JoanaCall> processor) {
     try {
       Path tmpFolder = Files.createTempDirectory("");
-      processor.accept(loadZipFile(path, tmpFolder));
+      JoanaCall joanaCall = loadZipFile(path, tmpFolder);
+      processor.accept(joanaCall);
       deleteFolder(tmpFolder);
     } catch (IOException e) {
+      e.printStackTrace();
       throw new RuntimeException(e);
     }
   }
