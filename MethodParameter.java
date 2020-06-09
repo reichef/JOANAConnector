@@ -46,11 +46,12 @@ public class MethodParameter extends Method {
     return new Method(className, methodName);
   }
 
-  <T> T accept(Visitor<T> visitor) {
+  public <T> T accept(Visitor<T> visitor) {
     return visitor.visit(this);
   }
 
-  @Override public String toRegexp() {
-    return String.format(".*%s\\.%s\\(.*\\)[^-]*->%d$", className, methodName, parameter);
+  @Override
+  public MethodParameter setClassName(String newClassName) {
+    return new MethodParameter(newClassName, methodName, parameter);
   }
 }

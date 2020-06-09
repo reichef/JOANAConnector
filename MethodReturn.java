@@ -14,15 +14,16 @@ public class MethodReturn extends Method {
     return new Method(className, methodName);
   }
 
-  <T> T accept(Visitor<T> visitor) {
+  public <T> T accept(Visitor<T> visitor) {
     return visitor.visit(this);
-  }
-
-  @Override public String toRegexp() {
-    return String.format(".*%s\\.%s\\(.*\\)[^-]*->-1$", className, methodName);
   }
 
   @Override public String toString() {
     return "MethodReturn{" + className + "." + methodName + "}";
+  }
+
+  @Override
+  public MethodReturn setClassName(String newClassName) {
+    return new MethodReturn(newClassName, methodName);
   }
 }

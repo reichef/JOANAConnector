@@ -19,7 +19,7 @@ import java.util.zip.ZipInputStream;
  */
 public class JoanaCall {
 
-  public static int SERVER_PORT = 8004;
+  public static final int SERVER_PORT = 8004;
 
   public final String classPath;
 
@@ -34,20 +34,20 @@ public class JoanaCall {
   public final Level logLevel;
 
   /**
-   * The passed lists have to have a working add method or else the serialization wont work
+   * The passed lists have to have a working add method or else the serialization won't work
    */
   public JoanaCall(String classPath, Flows knownFlows, List<Method> sources, List<Method> sinks,
-      Optional<List<String>> allowedPackagesForUnitializedFields, Level logLevel) {
+      Optional<List<String>> allowedPackagesForUninitializedFields, Level logLevel) {
     this.classPath = classPath;
     this.knownFlows = knownFlows;
     this.sources = sources;
     this.sinks = sinks;
-    this.allowedPackagesForUninitializedFields = allowedPackagesForUnitializedFields;
+    this.allowedPackagesForUninitializedFields = allowedPackagesForUninitializedFields;
     this.logLevel = logLevel;
   }
 
   /**
-   * The passed lists have to have a working add method or else the serialization wont work
+   * The passed lists have to have a working add method or else the serialization won't work
    */
   public JoanaCall(String classPath, Flows knownFlows, List<Method> sources, List<Method> sinks,
       List<String> allowedPackagesForUninitializedFields, Level logLevel) {
@@ -55,7 +55,7 @@ public class JoanaCall {
   }
 
   /**
-   * The passed lists have to have a working add method or else the serialization wont work
+   * The passed lists have to have a working add method or else the serialization won't work
    */
   public JoanaCall(String classPath, Flows knownFlows, List<Method> sources, List<Method> sinks, Level logLevel) {
     this(classPath, knownFlows, sources, sinks, Optional.empty(), logLevel);
@@ -83,7 +83,7 @@ public class JoanaCall {
   }
 
   public void roundTrip(Consumer<JoanaCall> processor) {
-    Path tmpFile = null;
+    Path tmpFile;
     Path tmpFolder = null;
     try {
       tmpFile = Files.createTempFile("", ".zip");

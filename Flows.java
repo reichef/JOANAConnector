@@ -129,6 +129,6 @@ public class Flows implements Iterable<Map.Entry<Method, Set<Method>>> {
   }
 
   public int size() {
-    return flows.entrySet().stream().mapToInt(e -> e.getValue().size()).sum();
+    return flows.values().stream().mapToInt(Set::size).sum();
   }
 }

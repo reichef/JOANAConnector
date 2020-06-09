@@ -41,22 +41,29 @@ public class Method {
     return "Method{" + className + "." + methodName + "}";
   }
 
-  /**
-   * Returns a regular expression that matches the method
-   */
-  public String toRegexp() {
-	  return String.format(".*%s\\.%s(\\(.*\\)[^-]*(->[^-]+)?)?$", concreteName.isEmpty() ? className : concreteName, methodName);
-  }
+
 
   public Method discardMiscInformation() {
     return this;
   }
 
-  <T> T accept(Visitor<T> visitor) {
+  public <T> T accept(Visitor<T> visitor) {
     return visitor.visit(this);
   }
 
   public String getClassName() {
     return className;
+  }
+
+  public String getRealClassName(){
+    if (concreteName.isEmpty()) {
+      return className;
+    }
+    return concreteName;
+  }
+
+  /** Creates a new instance with a different class name */
+  public Method setClassName(String newClassName) {
+    return new Method(newClassName, newClassName, methodName);
   }
 }
