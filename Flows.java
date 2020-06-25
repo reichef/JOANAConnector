@@ -7,24 +7,24 @@ import java.util.stream.Collectors;
 /**
  * Found flows
  */
-public class Flows implements Iterable<Map.Entry<Method, Set<Method>>> {
+public class Flows implements Iterable<Map.Entry<ProgramPart, Set<ProgramPart>>> {
 
-  private final Map<Method, Set<Method>> flows;
+  private final Map<ProgramPart, Set<ProgramPart>> flows;
 
   public Flows() {
     this(new HashMap<>());
   }
 
-  public Flows(Map<Method, Set<Method>> flows) {
+  public Flows(Map<ProgramPart, Set<ProgramPart>> flows) {
     this.flows = flows;
   }
 
-  public Map<Method, Set<Method>> flows() {
+  public Map<ProgramPart, Set<ProgramPart>> flows() {
     return Collections.unmodifiableMap(flows);
   }
 
-  public Set<Method> flows(Method method) {
-    return flows.getOrDefault(method, Collections.emptySet());
+  public Set<ProgramPart> flows(ProgramPart part) {
+    return flows.getOrDefault(part, Collections.emptySet());
   }
 
   public boolean isEmpty() {
@@ -35,18 +35,18 @@ public class Flows implements Iterable<Map.Entry<Method, Set<Method>>> {
    * @return this - other
    */
   public Flows remove(Flows other) {
-    Map<Method, Set<Method>> newFlows = new HashMap<>();
-    for (Map.Entry<Method, Set<Method>> methodSetEntry : flows.entrySet()) {
-      if (other.flows.containsKey(methodSetEntry.getKey())) {
-        Set<Method> methods = new HashSet<>();
-        for (Method method : methodSetEntry.getValue()) {
-          if (!other.flows.get(methodSetEntry.getKey()).contains(method)) {
-            methods.add(method);
+    Map<ProgramPart, Set<ProgramPart>> newFlows = new HashMap<>();
+    for (Map.Entry<ProgramPart, Set<ProgramPart>> partSetEntry : flows.entrySet()) {
+      if (other.flows.containsKey(partSetEntry.getKey())) {
+        Set<ProgramPart> parts = new HashSet<>();
+        for (ProgramPart part : partSetEntry.getValue()) {
+          if (!other.flows.get(partSetEntry.getKey()).contains(part)) {
+            parts.add(part);
           }
         }
-        newFlows.put(methodSetEntry.getKey(), methods);
+        newFlows.put(partSetEntry.getKey(), parts);
       } else {
-        newFlows.put(methodSetEntry.getKey(), methodSetEntry.getValue());
+        newFlows.put(partSetEntry.getKey(), partSetEntry.getValue());
       }
     }
     return new Flows(newFlows);
@@ -66,15 +66,15 @@ public class Flows implements Iterable<Map.Entry<Method, Set<Method>>> {
   }
 
   public Flows discardParameterInformation() {
-    Map<Method, Set<Method>> methods = new HashMap<>();
-    for (Map.Entry<Method, Set<Method>> entry : flows.entrySet()) {
-      methods.computeIfAbsent(entry.getKey().discardMiscInformation(), e -> new HashSet<>())
-          .addAll(entry.getValue().stream().map(Method::discardMiscInformation).collect(Collectors.toList()));
+    Map<ProgramPart, Set<ProgramPart>> parts = new HashMap<>();
+    for (Map.Entry<ProgramPart, Set<ProgramPart>> entry : flows.entrySet()) {
+      parts.computeIfAbsent(entry.getKey().getOwningMethod(), e -> new HashSet<>())
+          .addAll(entry.getValue().stream().map(ProgramPart::getOwningMethod).collect(Collectors.toList()));
     }
-    return new Flows(methods);
+    return new Flows(parts);
   }
 
-  public Flows add(Method source, Method sink) {
+  public Flows add(ProgramPart source, ProgramPart sink) {
     flows.computeIfAbsent(source, s -> new HashSet<>()).add(sink);
     return this;
   }
@@ -91,15 +91,15 @@ public class Flows implements Iterable<Map.Entry<Method, Set<Method>>> {
    * @return new flows instance
    */
   public Flows forMethod(Method method, boolean onlyInnerMethodSinks) {
-    return filter(s -> s.discardMiscInformation().equals(method),
-        s -> !onlyInnerMethodSinks || s.discardMiscInformation().equals(method));
+    return filter(s -> s.getOwningMethod().equals(method),
+        s -> !onlyInnerMethodSinks || s.getOwningMethod().equals(method));
   }
 
   public Flows onlyParameterSources() {
     return filterSources(s -> s instanceof MethodParameter);
   }
 
-  public boolean contains(Method sink, Method source) {
+  public boolean contains(ProgramPart sink, ProgramPart source) {
     return flows(sink).contains(source);
   }
 
@@ -109,22 +109,22 @@ public class Flows implements Iterable<Map.Entry<Method, Set<Method>>> {
         .map(p -> (MethodParameter) p).collect(Collectors.toList());
   }
 
-  public Flows filter(Predicate<Method> sourceFilter, Predicate<Method> sinkFilter) {
+  public Flows filter(Predicate<ProgramPart> sourceFilter, Predicate<ProgramPart> sinkFilter) {
     return new Flows(flows.entrySet().stream().filter(e -> sourceFilter.test(e.getKey()))
         .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().stream().filter(sinkFilter).collect(Collectors.toSet()))));
   }
 
-  public Flows filterSources(Predicate<Method> sourceFilter) {
+  public Flows filterSources(Predicate<ProgramPart> sourceFilter) {
     return new Flows(flows.entrySet().stream().filter(e -> sourceFilter.test(e.getKey()))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
   }
 
-  public Flows filterSinks(Predicate<Method> sinkFilter) {
+  public Flows filterSinks(Predicate<ProgramPart> sinkFilter) {
     return new Flows(flows.entrySet().stream()
         .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().stream().filter(sinkFilter).collect(Collectors.toSet()))));
   }
 
-  @Override public Iterator<Map.Entry<Method, Set<Method>>> iterator() {
+  @Override public Iterator<Map.Entry<ProgramPart, Set<ProgramPart>>> iterator() {
     return Collections.unmodifiableCollection(flows.entrySet()).iterator();
   }
 

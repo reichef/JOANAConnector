@@ -5,15 +5,15 @@ import java.nio.file.Path;
 public abstract class JoanaCallReturn {
 
 	public static JoanaCallReturn fromJson(String json) {
-		return Util.fromJson(json);
+		return Utils.fromJson(json);
 	}
 
 	public static JoanaCallReturn load(Path path) {
-		return Util.load(path);
+		return Utils.load(path);
 	}
 
 	public void store(Path path) {
-		Util.store(path, this);
+		Utils.store(path, this);
 	}
 
 	abstract boolean isError();

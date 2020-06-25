@@ -1,29 +1,45 @@
 package edu.kit.joana.component.connector;
 
-public class MethodReturn extends Method {
+import java.util.Objects;
+
+public class MethodReturn extends ProgramPart {
+
+  public final Method method;
 
   public MethodReturn(Method method) {
-    this(method.className, method.methodName);
+    this.method = method;
   }
 
-  public MethodReturn(String className, String methodName) {
-    super(className, methodName);
+  @Override public String toString() {
+    return "MethodReturn{" + method + "}";
   }
 
-  @Override public Method discardMiscInformation() {
-    return new Method(className, methodName);
+  @Override public Method getOwningMethod() {
+    return method;
   }
 
+  @Override
   public <T> T accept(Visitor<T> visitor) {
     return visitor.visit(this);
   }
 
-  @Override public String toString() {
-    return "MethodReturn{" + className + "." + methodName + "}";
+  @Override
+  public ProgramPart setClassName(String newClassName) {
+    MethodReturn ret = new MethodReturn((Method) method.setClassName(newClassName));
+    ret.getLevel().ifPresent(ret::setLevel);
+    return ret;
   }
 
-  @Override
-  public MethodReturn setClassName(String newClassName) {
-    return new MethodReturn(newClassName, methodName);
+  @Override public boolean equals(Object o) {
+    if (this == o)
+      return true;
+    if (!(o instanceof MethodReturn))
+      return false;
+    MethodReturn that = (MethodReturn) o;
+    return Objects.equals(method, that.method);
+  }
+
+  @Override public int hashCode() {
+    return Objects.hash(method);
   }
 }

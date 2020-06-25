@@ -8,7 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 
-public class Util {
+public class Utils {
 
   public static <T> T load(Path path) {
     try {

@@ -6,7 +6,7 @@ import java.util.Objects;
  * A method with a name and a class, a method without any addition refers to the method signature (all parameters), but not
  * to the return value
  */
-public class Method {
+public class Method extends ProgramPart {
 
   public final String concreteName;
   public final String className;
@@ -34,19 +34,18 @@ public class Method {
   }
 
   @Override public int hashCode() {
-    return Objects.hash(className, methodName);
+    return toString().hashCode();
   }
 
   @Override public String toString() {
     return "Method{" + className + "." + methodName + "}";
   }
 
-
-
-  public Method discardMiscInformation() {
+  @Override public Method getOwningMethod() {
     return this;
   }
 
+  @Override
   public <T> T accept(Visitor<T> visitor) {
     return visitor.visit(this);
   }
@@ -63,7 +62,10 @@ public class Method {
   }
 
   /** Creates a new instance with a different class name */
-  public Method setClassName(String newClassName) {
-    return new Method(newClassName, newClassName, methodName);
+  @Override
+  public ProgramPart setClassName(String newClassName) {
+    Method method = new Method(newClassName, newClassName, methodName);
+    method.getLevel().ifPresent(method::setLevel);
+    return method;
   }
 }

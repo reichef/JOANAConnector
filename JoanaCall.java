@@ -2,8 +2,6 @@ package edu.kit.joana.component.connector;
 
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.FileSystem;
@@ -27,55 +25,58 @@ public class JoanaCall {
 
 	public final Flows knownFlows;
 
-	public final List<Method> sources;
+	public final List<ProgramPart> sources;
 
-	public final List<Method> sinks;
+	public final List<ProgramPart> sinks;
 
 	public final Optional<List<String>> allowedPackagesForUninitializedFields;
 
 	public final Level logLevel;
 
+	public final Lattice lattice;
+
 	/**
 	 * The passed lists have to have a working add method or else the serialization
 	 * won't work
 	 */
-	public JoanaCall(String classPath, Flows knownFlows, List<Method> sources, List<Method> sinks,
-			Optional<List<String>> allowedPackagesForUninitializedFields, Level logLevel) {
+	public JoanaCall(String classPath, Flows knownFlows, List<ProgramPart> sources, List<ProgramPart> sinks,
+			Optional<List<String>> allowedPackagesForUninitializedFields, Level logLevel, Lattice lattice) {
 		this.classPath = classPath;
 		this.knownFlows = knownFlows;
 		this.sources = sources;
 		this.sinks = sinks;
 		this.allowedPackagesForUninitializedFields = allowedPackagesForUninitializedFields;
 		this.logLevel = logLevel;
+		this.lattice = lattice;
 	}
 
 	/**
 	 * The passed lists have to have a working add method or else the serialization
 	 * won't work
 	 */
-	public JoanaCall(String classPath, Flows knownFlows, List<Method> sources, List<Method> sinks,
-			List<String> allowedPackagesForUninitializedFields, Level logLevel) {
-		this(classPath, knownFlows, sources, sinks, Optional.of(allowedPackagesForUninitializedFields), logLevel);
+	public JoanaCall(String classPath, Flows knownFlows, List<ProgramPart> sources, List<ProgramPart> sinks,
+			List<String> allowedPackagesForUninitializedFields, Level logLevel, Lattice lattice) {
+		this(classPath, knownFlows, sources, sinks, Optional.of(allowedPackagesForUninitializedFields), logLevel, lattice);
 	}
 
 	/**
 	 * The passed lists have to have a working add method or else the serialization
 	 * won't work
 	 */
-	public JoanaCall(String classPath, Flows knownFlows, List<Method> sources, List<Method> sinks, Level logLevel) {
-		this(classPath, knownFlows, sources, sinks, Optional.empty(), logLevel);
+	public JoanaCall(String classPath, Flows knownFlows, List<ProgramPart> sources, List<ProgramPart> sinks, Level logLevel, Lattice lattice) {
+		this(classPath, knownFlows, sources, sinks, Optional.empty(), logLevel, lattice);
 	}
 
 	public JoanaCall setClassPath(String newClassPath) {
-		return new JoanaCall(newClassPath, knownFlows, sources, sinks, allowedPackagesForUninitializedFields, logLevel);
+		return new JoanaCall(newClassPath, knownFlows, sources, sinks, allowedPackagesForUninitializedFields, logLevel, lattice);
 	}
 
 	public void store(Path path) {
-		Util.store(path, this);
+		Utils.store(path, this);
 	}
 
 	public static JoanaCall load(Path path) {
-		return Util.load(path);
+		return Utils.load(path);
 	}
 
 	private static void deleteFolder(Path folder) {
