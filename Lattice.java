@@ -1,7 +1,5 @@
 package edu.kit.joana.component.connector;
 
-import edu.kit.joana.ifc.sdg.lattice.InvalidLatticeException;
-import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
 
 import java.util.*;
 
