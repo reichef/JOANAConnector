@@ -57,23 +57,6 @@ public class Flows implements Iterable<Map.Entry<ProgramPart, Set<ProgramPart>>>
         .collect(Collectors.joining("\n"));
   }
 
-  public boolean hasAllParameters() {
-    return true;
-  }
-
-  public int getParameterNumber() {
-    return -1;
-  }
-
-  public Flows discardParameterInformation() {
-    Map<ProgramPart, Set<ProgramPart>> parts = new HashMap<>();
-    for (Map.Entry<ProgramPart, Set<ProgramPart>> entry : flows.entrySet()) {
-      parts.computeIfAbsent(entry.getKey().getOwningMethod(), e -> new HashSet<>())
-          .addAll(entry.getValue().stream().map(ProgramPart::getOwningMethod).collect(Collectors.toList()));
-    }
-    return new Flows(parts);
-  }
-
   public Flows add(ProgramPart source, ProgramPart sink) {
     flows.computeIfAbsent(source, s -> new HashSet<>()).add(sink);
     return this;

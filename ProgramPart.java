@@ -5,10 +5,10 @@ import java.util.Optional;
 
 public abstract class ProgramPart {
 
-  private String level = null;
+  private String level = "";
 
   public Optional<String> getLevel() {
-    return Optional.ofNullable(level);
+    return level.isEmpty() ? Optional.empty() : Optional.of(level);
   }
 
   public void setLevel(String level) {

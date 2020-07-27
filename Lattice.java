@@ -1,6 +1,5 @@
 package edu.kit.joana.component.connector;
 
-
 import java.util.*;
 
 public class Lattice {
@@ -8,22 +7,27 @@ public class Lattice {
   public static final String HIGH = "high";
   public static final String LOW = "low";
 
-  public static final Lattice BASIC = LowHighLattice.INSTANCE;
+  public static final Lattice BASIC = new Lattice();
+  static {
+    BASIC.addElement(HIGH);
+    BASIC.addElement(LOW);
+    BASIC.setImmediatelyGreater(LOW, HIGH);
+  }
 
-  private List<String> elements = new ArrayList<String>();
-  private Map<String, Collection<String>> lower = new HashMap<String, Collection<String>>();
+  private List<String> elements = new ArrayList<>();
+  private Map<String, Collection<String>> lower = new HashMap<>();
   private Map<String, Collection<String>> greater = new HashMap<>();
 
   /**
    * Constructor
    */
-  public Lattice() { }
+  public Lattice() {
+  }
 
   /**
    * Constructor
    *
-   * @param elements
-   *            the initial elements in the lattice
+   * @param elements the initial elements in the lattice
    */
   public Lattice(Collection<String> elements) {
     assert elements != null;
@@ -45,7 +49,7 @@ public class Lattice {
   public void removeElement(String element) {
     assert element != null;
     if (!elements.contains(element))
-      throw new NotInLatticeException("Element '" + element.toString() + "' is not in lattice");
+      throw new NotInLatticeException("Element '" + element + "' is not in lattice");
     elements.remove(element);
 
     greater.remove(element);
@@ -68,22 +72,16 @@ public class Lattice {
   }
 
   public void setImmediatelyGreater(String element, String greater) {
-    assert element != null;
-    assert greater != null;
     if (!elements.contains(element))
-      throw new NotInLatticeException("Element '" + element.toString() + "' is not in lattice");
+      throw new NotInLatticeException("Element '" + element + "' is not in lattice");
     if (!elements.contains(greater))
-      throw new NotInLatticeException("Element '" + greater.toString() + "' is not in lattice");
+      throw new NotInLatticeException("Element '" + greater + "' is not in lattice");
 
-    Collection<String> greaterElements = this.greater.get(element);
-    if (greaterElements == null)
-      this.greater.put(element, greaterElements = new ArrayList<String>());
+    Collection<String> greaterElements = this.greater.computeIfAbsent(element, k -> new ArrayList<>());
     if (!greaterElements.contains(greater))
       greaterElements.add(greater);
 
-    Collection<String> lowerElements = this.lower.get(greater);
-    if (lowerElements == null)
-      this.lower.put(greater, lowerElements = new ArrayList<String>());
+    Collection<String> lowerElements = this.lower.computeIfAbsent(greater, k -> new ArrayList<>());
     if (!lowerElements.contains(element))
       lowerElements.add(element);
   }
@@ -93,12 +91,10 @@ public class Lattice {
   }
 
   public void unsetImmediatelyGreater(String element, String greater) {
-    assert element != null;
-    assert greater != null;
     if (!elements.contains(element))
-      throw new NotInLatticeException("Element '" + element.toString() + "' is not in lattice");
+      throw new NotInLatticeException("Element '" + element + "' is not in lattice");
     if (!elements.contains(greater))
-      throw new NotInLatticeException("Element '" + greater.toString() + "' is not in lattice");
+      throw new NotInLatticeException("Element '" + greater + "' is not in lattice");
 
     Collection<String> greaterElements = this.greater.get(element);
     if (greaterElements != null) {
@@ -120,28 +116,24 @@ public class Lattice {
   }
 
   public Collection<String> getImmediatelyGreater(String element) {
-    assert element != null;
     if (!elements.contains(element))
-      throw new NotInLatticeException("Element '" + element.toString() + "' is not in lattice");
+      throw new NotInLatticeException("Element '" + element + "' is not in lattice");
     Collection<String> ret = greater.get(element);
     if (ret == null)
-      return new ArrayList<String>();
+      return new ArrayList<>();
     return ret;
   }
 
   public Collection<String> getImmediatelyLower(String element) {
-    assert element != null;
     if (!elements.contains(element))
-      throw new NotInLatticeException("Element '" + element.toString() + "' is not in lattice");
+      throw new NotInLatticeException("Element '" + element + "' is not in lattice");
     Collection<String> ret = lower.get(element);
     if (ret == null)
-      return new ArrayList<String>();
+      return new ArrayList<>();
     return ret;
   }
 
   public String greatestLowerBound(String s, String t) {
-    assert s != null;
-    assert t != null;
     assert elements.contains(s);
     assert elements.contains(t);
     Collection<String> greatestLowerBounds = greatestLowerBounds(s, t);
@@ -151,8 +143,6 @@ public class Lattice {
   }
 
   public String leastUpperBound(String s, String t) {
-    assert s != null;
-    assert t != null;
     assert elements.contains(s);
     assert elements.contains(t);
     Collection<String> leastUpperBounds = leastUpperBounds(s, t);
@@ -164,9 +154,8 @@ public class Lattice {
   /**
    * Returns the unique bottom element of the lattice.
    *
-   * @reutrn the unique bottom element of the lattice.
-   * @throws InvalidLatticeException
-   *             if the graph does not have a unique bottom element.
+   * @throws InvalidLatticeException if the graph does not have a unique bottom element.
+   * @return the unique bottom element of the lattice.
    */
   public String getBottom() {
     Collection<String> bottoms = this.findBottomElements(getElements());
@@ -179,8 +168,7 @@ public class Lattice {
    * Returns the unique top element of the lattice.
    *
    * @return the unique top element of the lattice.
-   * @throws InvalidLatticeException
-   *             if the graph does not have a unique top element.
+   * @throws InvalidLatticeException if the graph does not have a unique top element.
    */
   public String getTop() {
     Collection<String> tops = this.findTopElements(getElements());
@@ -192,18 +180,16 @@ public class Lattice {
   /**
    * Transitive greater elements of a given lattice element.
    *
-   * @param s
-   *            the element for which to collect all greater elements.
-   *
+   * @param s the element for which to collect all greater elements.
    * @return all transitive greater elements of <code>s</code>
    */
   public Collection<String> collectAllGreaterElements(String s) {
-    Collection<String> greaterElements = new HashSet<String>();
+    Collection<String> greaterElements = new HashSet<>();
     greaterElements.add(s);
-    boolean changed = false;
+    boolean changed;
     do {
       changed = false;
-      Collection<String> toAdd = new ArrayList<String>();
+      Collection<String> toAdd = new ArrayList<>();
       for (String e : greaterElements)
         for (String p : getImmediatelyGreater(e))
           if (!greaterElements.contains(p)) {
@@ -218,18 +204,16 @@ public class Lattice {
   /**
    * Transitive lower elements of a given lattice element.
    *
-   * @param s
-   *            the element for which to collect all lower elements.
-   *
+   * @param s the element for which to collect all lower elements.
    * @return all transitive lower elements of <code>s</code>
    */
   public Collection<String> collectAllLowerElements(String s) {
-    Collection<String> lowerElements = new HashSet<String>();
+    Collection<String> lowerElements = new HashSet<>();
     lowerElements.add(s);
-    boolean changed = false;
+    boolean changed;
     do {
       changed = false;
-      Collection<String> toAdd = new ArrayList<String>();
+      Collection<String> toAdd = new ArrayList<>();
       for (String e : lowerElements)
         for (String p : getImmediatelyLower(e))
           if (!lowerElements.contains(p)) {
@@ -240,16 +224,14 @@ public class Lattice {
     } while (changed);
     return lowerElements;
   }
-  
+
   /**
    * Finds all least upper bounds (lub) for two given elements.
    *
-   * @param s
-   *            the first parameter for the lub operation.
-   * @param t
-   *            the second parameter for the lub operation.
+   * @param s the first parameter for the lub operation.
+   * @param t the second parameter for the lub operation.
    * @return all least upper bounds of the elements <code>s</code> and
-   *         <code>t</code>
+   * <code>t</code>
    */
   public Collection<String> leastUpperBounds(String s, String t) {
     assert s != null;
@@ -262,7 +244,7 @@ public class Lattice {
     Collection<String> gbt = collectAllGreaterElements(t);
 
     // CGB = GBs intersect GBt
-    List<String> cgb = new ArrayList<String>();
+    List<String> cgb = new ArrayList<>();
     for (String a : gbs)
       if (gbt.contains(a))
         cgb.add(a);
@@ -272,8 +254,9 @@ public class Lattice {
   }
 
   public Collection<String> min(Collection<String> elements) {
-    Collection<String> ret = new ArrayList<String>();
-    Elements: for (String e : elements) {
+    Collection<String> ret = new ArrayList<>();
+    Elements:
+    for (String e : elements) {
       for (String g : getImmediatelyLower(e)) {
         if (elements.contains(g))
           continue Elements;
@@ -283,16 +266,13 @@ public class Lattice {
     return ret;
   }
 
-
   /**
    * Finds all greatest lower bounds (glb) for two given elements.
    *
-   * @param s
-   *            the first parameter for the glb operation.
-   * @param t
-   *            the second parameter for the glb operation.
+   * @param s the first parameter for the glb operation.
+   * @param t the second parameter for the glb operation.
    * @return all greatest lower bounds of the elements <code>s</code> and
-   *         <code>t</code>
+   * <code>t</code>
    */
   public Collection<String> greatestLowerBounds(String s, String t) {
     assert s != null;
@@ -305,7 +285,7 @@ public class Lattice {
     Collection<String> lbt = collectAllLowerElements(t);
 
     // CLB = LBs intersect LBt
-    List<String> clb = new ArrayList<String>();
+    List<String> clb = new ArrayList<>();
     for (String a : lbs)
       if (lbt.contains(a))
         clb.add(a);
@@ -315,8 +295,9 @@ public class Lattice {
   }
 
   public Collection<String> max(Collection<String> elements) {
-    Collection<String> ret = new ArrayList<String>();
-    Elements: for (String e : elements) {
+    Collection<String> ret = new ArrayList<>();
+    Elements:
+    for (String e : elements) {
       for (String g : getImmediatelyGreater(e)) {
         if (elements.contains(g))
           continue Elements;
@@ -325,17 +306,16 @@ public class Lattice {
     }
     return ret;
   }
-  
+
   /**
    * Finds all elements that do not have a predecessor.
    *
-   * @param inElements
-   *            the elements of the graph.
+   * @param inElements the elements of the graph.
    * @return all elements in <code>inElements</code> that do not have a
-   *         predecessor.
+   * predecessor.
    */
   public Collection<String> findTopElements(Collection<String> inElements) {
-    Collection<String> tops = new ArrayList<String>();
+    Collection<String> tops = new ArrayList<>();
 
     for (String e : inElements) {
       if (getImmediatelyGreater(e).size() == 0)
@@ -347,13 +327,12 @@ public class Lattice {
   /**
    * Finds all elements that do not have a successor.
    *
-   * @param inElements
-   *            the elements of the graph.
+   * @param inElements the elements of the graph.
    * @return all elements in <code>inElements</code> that do not have a
-   *         successor.
+   * successor.
    */
   public Collection<String> findBottomElements(Collection<String> inElements) {
-    Collection<String> bottoms = new ArrayList<String>();
+    Collection<String> bottoms = new ArrayList<>();
 
     for (String e : inElements) {
       if (getImmediatelyLower(e).size() == 0)
@@ -362,4 +341,13 @@ public class Lattice {
     return bottoms;
   }
 
+  public void assertIsLatticeElement(String element){
+    if (!elements.contains(element)){
+      throw new AssertionError(String.format("Element %s not in lattice", element));
+    }
   }
+
+  public Lattice elseBasic(){
+    return elements.isEmpty() ? BASIC : this;
+  }
+}
